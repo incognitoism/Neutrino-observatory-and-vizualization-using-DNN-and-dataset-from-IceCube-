@@ -8,6 +8,7 @@ import SkyPlot from '@/components/SkyPlot';
 import ScoreVsEnergyPlot from '@/components/ScoreVsEnergyPlot';
 import DistributionPlot from '@/components/DistributionPlot';
 
+// Define the structure of the data we expect from our backend API
 interface AnalysisResult {
   MJD: number;
   RA_deg: number;
@@ -17,6 +18,7 @@ interface AnalysisResult {
   anomaly_score: number;
 }
 
+// An improved, shimmering skeleton loader component
 const SkeletonLoader = ({ className }: { className?: string }) => (
   <div className={`w-full h-full bg-gradient-to-r from-gray-800/50 via-gray-700/30 to-gray-800/50 rounded-xl animate-pulse ${className}`} />
 );
@@ -30,7 +32,7 @@ export default function Home() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFile(event.target.files[0]);
-      setError(null);
+      setError(null); // Clear previous errors on new file selection
     }
   };
 
@@ -48,8 +50,13 @@ export default function Home() {
     formData.append("file", file);
 
     try {
+      // Use the public URL for your deployed backend
       const API_URL = "https://cosmic-anomaly-observatory.onrender.com/analyze/"; 
-      const response = await fetch(API_URL, { method: "POST", body: formData });
+      
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -58,8 +65,13 @@ export default function Home() {
 
       const data: AnalysisResult[] = await response.json();
       setResults(data);
-    } catch (err: any) {
-      setError("Could not connect to the backend. Please ensure the server is running and the URL is correct.");
+
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -139,7 +151,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Plots */}
+          {/* Side Plots */}
           <div className="xl:col-span-2 flex flex-col gap-6">
             <Card className="bg-gray-900/80 border border-gray-700 shadow-lg rounded-2xl overflow-hidden backdrop-blur-xl">
               <CardHeader>
