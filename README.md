@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🌌 Cosmic Anomaly Observatory
+A full-stack, AI-powered web application to discover anomalous events in real astrophysical data from the IceCube Neutrino Observatory.
 
-## Getting Started
+This project is an end-to-end scientific pipeline that takes raw, high-level neutrino event data, uses an unsupervised machine learning model to identify outliers, and presents the findings in a polished, interactive web dashboard.
 
-First, run the development server:
+✨ Key Features
+Unsupervised Anomaly Detection: At its core is a Tabular Autoencoder, built from scratch in PyTorch, that learns the features of "normal" events to find scientifically interesting anomalies.
 
-```bash
+Full-Stack Architecture: The application is built with a modern, decoupled architecture:
+
+Backend: A robust API built with FastAPI (Python) serves the trained model and performs all the heavy data analysis.
+
+Frontend: A sleek, multi-page user interface built with Next.js, React, and TypeScript, styled with Tailwind CSS.
+
+Interactive Data Visualization: Results are displayed in a sophisticated dashboard featuring multiple analytical plots created with Plotly, including:
+
+An interactive 3D celestial sky map to visualize the location of events.
+
+Plots showing the relationship between anomaly scores and physical properties like energy.
+
+Cloud-Native Deployment: The backend is designed for stable, "always-on" hosting on platforms like Fly.io or Render, while the frontend is optimized for deployment on Vercel.
+
+🛠️ Technology Stack
+Backend (The Brain):
+
+Language: Python
+
+ML Framework: PyTorch
+
+API Framework: FastAPI
+
+Data Handling: Pandas, NumPy
+
+Server: Uvicorn
+
+Frontend (The Face):
+
+Framework: Next.js / React
+
+Language: TypeScript
+
+Styling: Tailwind CSS
+
+UI Components: Shadcn/UI
+
+Visualization: Plotly.js
+
+Icons: Lucide React
+
+🚀 Getting Started
+To run this project locally, you'll need to set up both the backend and frontend servers.
+
+1. Backend Setup
+The backend requires a Conda environment.
+
+# Navigate to the backend directory
+cd backend
+
+# Create and activate the conda environment (if you haven't already)
+# Note: On Apple Silicon, you may need to create an x86 environment
+conda create --name cosmic-env python=3.9
+conda activate cosmic-env
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the FastAPI server
+uvicorn main:app --reload
+
+The backend API will now be running at http://127.0.0.1:8000.
+
+2. Frontend Setup
+The frontend requires Node.js.
+
+# Navigate to the frontend directory
+cd cosmic-anomaly-observatory
+
+# Install dependencies
+npm install
+
+# Run the Next.js development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open your browser and navigate to http://localhost:3000 to see the web application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🛰️ How to Use the Application
+Navigate to the Dashboard: The main page of the application is the analysis dashboard.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Upload Data: Click the "Upload Data File" button and select a .txt file containing reconstructed neutrino event data. The file must be space-delimited with columns for MJD, RA_deg, Dec_deg, Unc_deg, and log10_Ereco.
 
-## Learn More
+Run Analysis: Click the "Run Analysis" button. The frontend will send the file to the live backend API for processing.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Explore Results: Once the analysis is complete, the dashboard will populate with the 3D sky map and other analytical plots, highlighting the most anomalous events discovered by the model.
