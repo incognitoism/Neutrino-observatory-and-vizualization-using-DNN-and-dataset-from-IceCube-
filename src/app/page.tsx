@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, UploadCloud, FileText, AlertTriangle, BarChart, ScatterChart, Globe } from "lucide-react";
-import SkyPlot from '@/components/SkyPlot';
-import ScoreVsEnergyPlot from '@/components/ScoreVsEnergyPlot';
-import DistributionPlot from '@/components/DistributionPlot';
+import dynamic from 'next/dynamic';
 
 // Define the structure of the data we expect from our backend API
 interface AnalysisResult {
@@ -22,6 +20,21 @@ interface AnalysisResult {
 const SkeletonLoader = ({ className }: { className?: string }) => (
   <div className={`w-full h-full bg-gradient-to-r from-gray-800/50 via-gray-700/30 to-gray-800/50 rounded-xl animate-pulse ${className}`} />
 );
+
+// --- FIX: Dynamically import Plotly components with SSR turned off ---
+const DynamicSkyPlot = dynamic(() => import('@/components/SkyPlot'), {
+  ssr: false,
+  loading: () => <SkeletonLoader />,
+});
+const DynamicScoreVsEnergyPlot = dynamic(() => import('@/components/ScoreVsEnergyPlot'), {
+  ssr: false,
+  loading: () => <SkeletonLoader />,
+});
+const DynamicDistributionPlot = dynamic(() => import('@/components/DistributionPlot'), {
+  ssr: false,
+  loading: () => <SkeletonLoader />,
+});
+
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -147,7 +160,7 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 h-[520px]">
-              {isLoading ? <SkeletonLoader /> : <SkyPlot results={results} />}
+              {isLoading ? <SkeletonLoader /> : <DynamicSkyPlot results={results} />}
             </CardContent>
           </Card>
 
@@ -160,7 +173,7 @@ export default function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2 h-[220px]">
-                {isLoading ? <SkeletonLoader /> : <ScoreVsEnergyPlot results={results} />}
+                {isLoading ? <SkeletonLoader /> : <DynamicScoreVsEnergyPlot results={results} />}
               </CardContent>
             </Card>
 
@@ -171,7 +184,7 @@ export default function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-2 h-[220px]">
-                {isLoading ? <SkeletonLoader /> : <DistributionPlot results={results} />}
+                {isLoading ? <SkeletonLoader /> : <DynamicDistributionPlot results={results} />}
               </CardContent>
             </Card>
           </div>
