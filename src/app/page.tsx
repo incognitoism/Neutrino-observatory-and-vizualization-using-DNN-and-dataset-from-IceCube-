@@ -1,103 +1,170 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, UploadCloud, FileText, AlertTriangle, BarChart, ScatterChart, Globe } from "lucide-react";
+import SkyPlot from '@/components/SkyPlot';
+import ScoreVsEnergyPlot from '@/components/ScoreVsEnergyPlot';
+import DistributionPlot from '@/components/DistributionPlot';
+
+interface AnalysisResult {
+  MJD: number;
+  RA_deg: number;
+  Dec_deg: number;
+  Unc_deg: number;
+  log10_Ereco: number;
+  anomaly_score: number;
+}
+
+const SkeletonLoader = ({ className }: { className?: string }) => (
+  <div className={`w-full h-full bg-gradient-to-r from-gray-800/50 via-gray-700/30 to-gray-800/50 rounded-xl animate-pulse ${className}`} />
+);
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [file, setFile] = useState<File | null>(null);
+  const [results, setResults] = useState<AnalysisResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFile(event.target.files[0]);
+      setError(null);
+    }
+  };
+
+  const handleAnalyzeClick = async () => {
+    if (!file) {
+      setError("Please select a file first.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setResults([]);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const API_URL = "https://cosmic-anomaly-observatory.onrender.com/analyze/"; 
+      const response = await fetch(API_URL, { method: "POST", body: formData });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "An error occurred during analysis.");
+      }
+
+      const data: AnalysisResult[] = await response.json();
+      setResults(data);
+    } catch (err: any) {
+      setError("Could not connect to the backend. Please ensure the server is running and the URL is correct.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-8 animate-fadeIn">
+      {/* Header */}
+      <div className="text-center mt-4">
+        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text">
+          Anomaly Detection Dashboard
+        </h1>
+        <p className="text-gray-400 mt-2 max-w-2xl mx-auto text-lg">
+          An AI-powered observatory to discover anomalous events in astrophysical neutrino data.
+        </p>
+      </div>
+
+      {/* File Upload */}
+      <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 shadow-2xl backdrop-blur-xl rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-xl text-white">
+            <UploadCloud size={24} className="text-blue-400" /> Upload Data File
+          </CardTitle>
+          <CardDescription className="text-gray-400">
+            Select a `.txt` file containing neutrino event data to begin the analysis.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <label
+              htmlFor="file-upload"
+              className="flex-grow cursor-pointer bg-gray-800/50 hover:bg-gray-700/70 border-2 border-dashed border-gray-600 rounded-xl p-6 text-center text-gray-400 transition-all hover:scale-[1.02] hover:border-blue-500"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <FileText size={18} className="text-gray-300" />
+                <span>{file ? file.name : "Click or drag to upload a file"}</span>
+              </div>
+            </label>
+            <input
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".txt"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <Button
+              onClick={handleAnalyzeClick}
+              disabled={isLoading || !file}
+              className="w-48 h-14 text-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 transition-all rounded-xl shadow-lg"
+            >
+              {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {isLoading ? "Analyzing..." : "Run Analysis"}
+            </Button>
+          </div>
+          {error && (
+            <div className="mt-4 text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg p-3 flex items-center gap-2 animate-shake">
+              <AlertTriangle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {(isLoading || results.length > 0) && (
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          {/* Sky Plot */}
+          <Card className="xl:col-span-3 bg-gray-900/80 border border-gray-700 shadow-lg rounded-2xl overflow-hidden backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Globe size={20} className="text-green-400" /> 3D Sky Map
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 h-[520px]">
+              {isLoading ? <SkeletonLoader /> : <SkyPlot results={results} />}
+            </CardContent>
+          </Card>
+
+          {/* Plots */}
+          <div className="xl:col-span-2 flex flex-col gap-6">
+            <Card className="bg-gray-900/80 border border-gray-700 shadow-lg rounded-2xl overflow-hidden backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <ScatterChart size={20} className="text-yellow-400" /> Score vs. Energy
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 h-[220px]">
+                {isLoading ? <SkeletonLoader /> : <ScoreVsEnergyPlot results={results} />}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-900/80 border border-gray-700 shadow-lg rounded-2xl overflow-hidden backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <BarChart size={20} className="text-pink-400" /> Energy Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 h-[220px]">
+                {isLoading ? <SkeletonLoader /> : <DistributionPlot results={results} />}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }
